@@ -4,6 +4,7 @@ import random
 
 import traceback
 from module.atom.click import RuleClick
+from tasks.BondlingFairyland.assets import BondlingFairylandAssets
 from tasks.GlobalGame.assets import GlobalGameAssets as GGA
 from tasks.GameUi.assets import GameUiAssets as G
 from tasks.KekkaiUtilize.assets import KekkaiUtilizeAssets
@@ -110,7 +111,7 @@ page_six_gates = Page(G.I_CHECK_SIX_GATES)
 page_six_gates.link(button=G.I_SIX_GATES_GOTO_EXPLORATION, destination=page_exploration)
 page_exploration.link(button=G.I_EXPLORATION_GOTO_SIX_GATES, destination=page_six_gates)
 # 契灵之境 bondling fairyland
-page_bondling_fairyland = Page(G.I_CHECK_BONDLING_FAIRYLAND)
+page_bondling_fairyland = Page(BondlingFairylandAssets.I_BALL_AREA)
 page_bondling_fairyland.link(button=G.I_BACK_YOLLOW, destination=page_exploration)
 page_exploration.link(button=G.I_EXPLORATION_GOTO_BONDLING_FAIRYLAND, destination=page_bondling_fairyland)
 # 英杰试炼 hero test
@@ -127,6 +128,10 @@ page_town.link(button=G.I_TOWN_GOTO_DUEL, destination=page_duel)
 page_demon_encounter = Page(G.I_CHECK_DEMON_ENCOUNTER)
 page_demon_encounter.link(button=G.I_BACK_YOLLOW, destination=page_town)
 page_town.link(button=G.I_TOWN_GOTO_DEMON_ENCOUNTER, destination=page_demon_encounter)
+# 逢魔之时现世逢魔 demon_encounter_realworld
+page_demon_encounter_realworld = Page(G.I_CHECK_DEMON_ENCOUNTER_REALWORLD)
+page_demon_encounter_realworld.link(button=G.I_BACK_YOLLOW, destination=page_demon_encounter)
+page_demon_encounter.link(button=G.I_DEMON_ENCOUNTER_REALWORLD_GOTO, destination=page_demon_encounter_realworld)
 # 狩猎战 hunt
 page_hunt = Page(G.I_CHECK_HUNT)
 page_hunt.link(button=G.I_BACK_YOLLOW, destination=page_town)
