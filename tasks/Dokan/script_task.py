@@ -241,7 +241,7 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
                     self.switch_preset_team(cfg.dokan_config.switch_preset_enable, group, team)
 
                 self.dokan_battle(cfg)
-                self.quit_battle()
+                # self.quit_battle()
                 self.green_mark_done = False
                 continue
             # 场景状态：进入战斗，待开始
@@ -253,7 +253,7 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
                 # 战斗
                 self.dokan_battle(cfg)
                 # 战斗结束,尝试退出战斗界面
-                self.quit_battle()
+                # self.quit_battle()
                 # 每次战斗结束都重置绿标
                 self.green_mark_done = False
                 continue

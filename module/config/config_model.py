@@ -13,6 +13,10 @@ from pydantic import BaseModel, ValidationError, Field
 from module.config.utils import *
 from module.logger import logger
 
+from tasks.OrochiNew.config import OrochiNew
+from tasks.ContinueBreed.config import ContinueBreed
+from tasks.NewSougenbi.config import NewSougenbi
+
 # 导入配置的Python文件
 from tasks.Component.config_base import ConfigBase, TimeDelta
 from tasks.Exploration.config import Exploration
@@ -87,6 +91,11 @@ class ConfigModel(ConfigBase):
     script: Script = Field(default_factory=Script)
     restart: Restart = Field(default_factory=Restart)
     global_game: GlobalGame = Field(default_factory=GlobalGame)
+
+    # jacky
+    orochi_new: OrochiNew = Field(default_factory=OrochiNew)
+    continue_breed: ContinueBreed = Field(default_factory=ContinueBreed)
+    new_sougenbi: NewSougenbi = Field(default_factory=NewSougenbi)
 
     # 这些是每日任务的
     area_boss: AreaBoss = Field(default_factory=AreaBoss)

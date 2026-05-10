@@ -38,6 +38,17 @@ class GeneralBattle(GeneralBuff, GeneralBattleAssets):
         logger.info(f"Current count: {self.current_count}")
         # 战前设置
         self.battle_before(buff, config)
+
+        logger.warning('JACKY: force 2s timer to re-confirm preparation')
+        timeout_timer = Timer(2.1).start()
+        while not timeout_timer.reached():
+            # if self.appear_then_click(self.I_PREPARE_HIGHLIGHT, interval=1.5):
+            appear = self.appear(self.I_PREPARE_HIGHLIGHT, interval=1.0)
+            if appear:
+                logger.error('JACKY: force click preparation until disappear')
+                self.ui_click_until_disappear(self.I_PREPARE_HIGHLIGHT, interval=1)
+                break
+
         # 绿标
         if self.is_in_battle(False):
             self.green_mark(config.green_enable, config.green_mark)
