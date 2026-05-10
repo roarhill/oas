@@ -1,0 +1,38 @@
+[
+  {
+    "itemName": "path_main_to_exploration",
+    "imageName": "path_main_to_exploration_554,134,30,45.png",
+    "roiFront": "554,134,30,45",
+    "roiBack": "554,134,30,45",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "院子到探索"
+  },
+  {
+    "itemName": "path_exploration_to_soul",
+    "imageName": "path_exploration_to_soul,155,680,62,31.png",
+    "roiFront": "155,680,62,31",
+    "roiBack": "155,680,62,31",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "探索到御魂"
+  },
+  {
+    "itemName": "path_soul_to_sougenbi",
+    "imageName": "path_soul_to_sougenbi,557,145,54,59.png",
+    "roiFront": "557,145,54,59",
+    "roiBack": "557,145,54,59",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "御魂到业原火"
+  },
+  {
+    "itemName": "path_sougenbi_to_foolery",
+    "imageName": "path_sougenbi_to_foolery,131,315,79,34.png",
+    "roiFront": "131,315,79,34",
+    "roiBack": "131,315,79,34",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "业原火到痴"
+  }
+]
