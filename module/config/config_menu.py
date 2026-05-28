@@ -33,6 +33,9 @@ class ConfigMenu:
             "Hyakkiyakou",
             "HeroTest",
             "FindJade",
+            "OrochiNew",
+            "ContinueBreed",
+            "NewSougenbi",
             "MemoryScrolls"
         ]
         # 阴阳寮
