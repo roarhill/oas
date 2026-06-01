@@ -1,0 +1,56 @@
+[
+  {
+    "itemName": "toppa_scroll",
+    "imageName": "res_toppa_scroll.png",
+    "roiFront": "403,179,93,96",
+    "roiBack": "0,0,1280,720",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "战斗结算中的突破券。需要全图匹配，当前match只返回最高相似度区域，因此不支持多张突破券场景"
+  },
+  {
+    "itemName": "orochi_succeed",
+    "imageName": "win_550_485_71_48.png",
+    "roiFront": "550,485,71,48",
+    "roiBack": "550,485,71,48",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "场景检测：战斗胜利"
+  },
+  {
+    "itemName": "orochi_succeed2",
+    "imageName": "win_56_639_41_36.png",
+    "roiFront": "56,639,41,36",
+    "roiBack": "win_56_639_41_36",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "场景检测：战斗胜利2"
+  },
+  {
+    "itemName": "orochi_failed",
+    "imageName": "fail_550_485_88_52.png",
+    "roiFront": "550,485,88,52",
+    "roiBack": "550,485,88,52",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "场景检测：战斗失败"
+  },
+  {
+    "itemName": "orochi_prepare",
+    "imageName": "orochi_prepare_buf_795_33_39_42.png",
+    "roiFront": "795,33,39,42",
+    "roiBack": "795,33,39,42",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "场景检测：组队"
+  },  
+  {
+    "itemName": "orochi_fire",
+    "imageName": "orochi_fire_1188_618_58_42.png",
+    "roiFront": "1188,618,58,42",
+    "roiBack": "1188,618,58,42",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "挑战"
+  }
+]
