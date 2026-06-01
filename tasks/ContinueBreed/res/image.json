@@ -1,0 +1,20 @@
+[
+  {
+    "itemName": "continue_breeding",
+    "imageName": "continue_to_breed_627,595,145,46.png",
+    "roiFront": "627,595,145,46",
+    "roiBack": "627,595,145,46",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "继续"
+  },
+  {
+    "itemName": "breeding_confirm",
+    "imageName": "continue_to_breed_817,627,113,45.png",
+    "roiFront": "817,627,113,45",
+    "roiBack": "817,627,113,45",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "确认"
+  }
+]
