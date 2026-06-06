@@ -426,8 +426,9 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
 
         # 打完后，第三个界面，挑战成功
         if self.appear(self.I_WIN):
-            action_click = random.choice([self.C_WIN_1, self.C_WIN_2, self.C_WIN_3])
-            self.click(click=action_click, interval=0.8)
+            # action_click = random.choice([self.C_WIN_1, self.C_WIN_2, self.C_WIN_3])
+            # self.click(click=action_click, interval=0.8)
+            self.click(click=DokanAssets.C_DOKAN_RANDOM_CLICK_AREA2, interval=0.5)            
             return True
 
         # 出现失败 就点击
@@ -450,8 +451,10 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
 
         # 猫咪奖励
         if self.appear(OrochiAssets.I_PET_PRESENT):
-            action_click = random.choice([self.C_WIN_1, self.C_WIN_2, self.C_WIN_3])
-            self.click(click=action_click, interval=0.6)
+            logger.info("OrochiNew was started at {self.I_PET_PRESENT.name}")
+            # action_click = random.choice([self.C_WIN_1, self.C_WIN_2, self.C_WIN_3])
+            # self.click(click=action_click, interval=0.6)
+            self.click(click=DokanAssets.C_DOKAN_RANDOM_CLICK_AREA2, interval=0.5)
             return True
 
         return False
