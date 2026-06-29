@@ -67,7 +67,7 @@ class GameUiAssets:
 	# 探索前往平安奇谭 
 	I_EXPLORATION_GOTO_HEIAN_KITAN = RuleImage(roi_front=(739,643,52,44), roi_back=(35,615,1097,102), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_exploration_goto_heian_kitan.png")
 	# 探索前往六道之门 
-	I_EXPLORATION_GOTO_SIX_GATES = RuleImage(roi_front=(928,638,54,46), roi_back=(46,618,1090,100), threshold=0.65, method="Template matching", file="./tasks/GameUi/page/page_exploration_goto_six_gates.png")
+	I_EXPLORATION_GOTO_SIX_GATES = RuleImage(roi_front=(529,679,93,30), roi_back=(46,618,1090,100), threshold=0.65, method="Template matching", file="./tasks/GameUi/page/page_exploration_goto_six_gates.png")
 	# 探索前往契灵之境 
 	I_EXPLORATION_GOTO_BONDLING_FAIRYLAND = RuleImage(roi_front=(1032,634,46,50), roi_back=(41,619,1104,96), threshold=0.65, method="Template matching", file="./tasks/GameUi/page/page_exploration_goto_bondling_fairyland.png")
 	# description 
@@ -89,7 +89,7 @@ class GameUiAssets:
 	# description 
 	I_CHECK_HEIAN_KITAN = RuleImage(roi_front=(27,48,47,39), roi_back=(27,48,47,39), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_heian_kitan.png")
 	# description 
-	I_CHECK_SIX_GATES = RuleImage(roi_front=(1174,621,55,44), roi_back=(1174,621,55,44), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_six_gates.png")
+	I_CHECK_SIX_GATES = RuleImage(roi_front=(249,33,22,24), roi_back=(227,7,98,85), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_six_gates.png")
 	# description 
 	I_CHECK_BONDLING_FAIRYLAND = RuleImage(roi_front=(614,660,56,49), roi_back=(614,660,56,49), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_bondling_fairyland.png")
 	# description 
@@ -175,7 +175,7 @@ class GameUiAssets:
 	# description 
 	I_CHECK_GUILD = RuleImage(roi_front=(1072,630,49,46), roi_back=(1072,630,49,46), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_guild.png")
 	# description 
-	I_CHECK_TEAM = RuleImage(roi_front=(32,585,82,90), roi_back=(32,585,82,90), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_team.png")
+	I_CHECK_TEAM = RuleImage(roi_front=(32,585,82,90), roi_back=(32,585,82,90), threshold=0.63, method="Template matching", file="./tasks/GameUi/page/page_check_team.png")
 	# description 
 	I_CHECK_COLLECTION = RuleImage(roi_front=(579,639,63,65), roi_back=(118,626,1162,94), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_collection.png")
 	# description 
@@ -221,7 +221,7 @@ class GameUiAssets:
 	# 英杰试炼左上角标志 
 	I_CHECK_HERO_TEST = RuleImage(roi_front=(148,10,133,48), roi_back=(137,0,157,71), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_check_hero_test.png")
 	# 探索前往英杰试炼 
-	I_EXPLORATION_GOTO_HERO_TEST = RuleImage(roi_front=(837,630,58,56), roi_back=(7,605,1272,113), threshold=0.8, method="Template matching", file="./tasks/GameUi/page/page_exploration_goto_hero_test.png")
+	I_EXPLORATION_GOTO_HERO_TEST = RuleImage(roi_front=(838,635,38,43), roi_back=(7,605,1272,113), threshold=0.65, method="Template matching", file="./tasks/GameUi/page/page_exploration_goto_hero_test.png")
 
 
 	# Image Rule Assets
