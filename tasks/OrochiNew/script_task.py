@@ -43,7 +43,7 @@ class OrochiNewScene(Enum):
     # 场景检测：御魂战斗进行中
     OROCHI_SCENE_FIGHTING = 3
 
-class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, SwitchSoul, OrochiNewAssets):
+class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, SwitchSoul, OrochiNewAssets, OrochiAssets):
     in_orochi: bool = False
     current_scene: OrochiNewScene = OrochiNewScene.OROCHI_SCENE_UNKNOWN
     anti_detect_click_fixed_random_area: bool = True
@@ -91,10 +91,50 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
             if detect_count >= 3:
                 break
 
-        # 如果不在可支持的场景界面，按正常的流程走
+        # 如果不在可支持的场景界面，按正常的流程走：切换御魂、打开御魂加成、创建房间、拉队伍
         if not self.in_orochi:
             self.orochi_switch_soul(self.my_config)
             self.orochi_open_soul_buf(self.my_config)
+            
+            # 只有队长模式才需要创建房间和拉队伍
+            if self.my_config.orochi_new_config.user_status == UserStatus.LEADER:
+                self.ui_get_current_page()
+                self.ui_goto(page_soul_zones)
+                self.orochi_enter()
+                
+                layer = self.my_config.orochi_new_config.layer
+                logger.info(f"finding Orochi layer: {layer}")
+                if not self.orochi_check_layer(layer):
+                    logger.error(f"Failed to find and select layer: {layer}")
+                    return False
+                
+                logger.info('Create team')
+                while 1:
+                    self.screenshot()
+                    if self.appear_then_click(OrochiAssets.I_FORM_TEAM, interval=1):
+                        break
+
+                max_retry_create_room = 3
+                is_room_created = False
+                logger.info(f'{self.I_CREATE_ROOM}, max retry create room={max_retry_create_room}')
+                while 1:
+                    self.screenshot()
+                    if not self.create_room():
+                        max_retry_create_room = max_retry_create_room - 1
+                        if max_retry_create_room <= 0:
+                            logger.error("create room failed")
+                            break
+                    else:
+                        logger.info("create room successfully")
+                        is_room_created = True
+                
+                if is_room_created:
+                    self.ensure_private()
+                    self.create_ensure()
+                    
+                    self.current_scene = OrochiNewScene.OROCHI_SCENE_TEAM
+                else:
+                    return False
 
         # 开始战斗
         success = True
@@ -227,33 +267,16 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
         manual_start = False
         is_first = True
 
-        # 未知界面启动，走正常流程
-        if scene == OrochiNewScene.OROCHI_SCENE_UNKNOWN:
-            self.ui_get_current_page()
-            self.ui_goto(page_soul_zones)
-            self.orochi_enter()
-            # 创建队伍
-            logger.info('Create team')
-            while 1:
-                self.screenshot()
-                if self.appear_then_click(OrochiAssets.I_FORM_TEAM, interval=1):
-                    logger.info("111 form team")
-                    break
-
-            layer = self.my_config.orochi_new_config.layer
-            logger.info(f"finding Orochi layer: {layer}")
-            self.orochi_check_layer(layer)
-
-            # 创建房间
-            self.create_room()
-            self.ensure_private()
-            self.create_ensure()
-        # elif scene == OrochiNewScene.OROCHI_SCENE_TEAM:
-        #     is_first = False
-        #     manual_start = True
-        else:
-            is_first = False
-            manual_start = True
+        match scene:
+            case OrochiNewScene.OROCHI_SCENE_TEAM:
+                is_first = True
+                manual_start = False
+            case OrochiNewScene.OROCHI_SCENE_IN_FIELD | OrochiNewScene.OROCHI_SCENE_FIGHTING:
+                is_first = False
+                manual_start = True
+            case _:
+                is_first = False
+                manual_start = True
 
         success = True
 

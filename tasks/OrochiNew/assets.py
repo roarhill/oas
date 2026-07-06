@@ -19,12 +19,14 @@ class OrochiNewAssets:
 	I_OROCHI_FAILED = RuleImage(roi_front=(550,485,88,52), roi_back=(550,485,88,52), threshold=0.8, method="Template matching", file="./tasks/OrochiNew/res/fail_550_485_88_52.png")
 	# 场景检测：组队
 	I_OROCHI_PREPARE = RuleImage(roi_front=(795,33,39,42), roi_back=(795,33,39,42), threshold=0.8, method="Template matching", file="./tasks/OrochiNew/res/orochi_prepare_buf_795_33_39_42.png")
+	# 场景检测：智能助手
+	I_AI_ASSISTANT = RuleImage(roi_front=(87,17,128,41), roi_back=(87,17,128,41), threshold=0.8, method="Template matching", file="./tasks/OrochiNew/res/ai_assistant_87,17,128,41.png")
 	# 挑战
 	I_OROCHI_FIRE = RuleImage(roi_front=(1188,618,58,42), roi_back=(1188,618,58,42), threshold=0.8, method="Template matching", file="./tasks/OrochiNew/res/orochi_fire_1188_618_58_42.png")
 
 	# List Rule Assets
 	# 这个是御魂界面选择不同层数的 
-	L_LAYER_LIST_NEW = RuleList(folder="./tasks/OrochiNew - 副本/res", direction="vertical", mode="ocr", roi_back=(430,190,160,370), size=(45, 88), 
+	L_LAYER_LIST_NEW = RuleList(folder="./tasks/OrochiNew/res", direction="vertical", mode="ocr", roi_back=(430,190,160,370), size=(45, 88), 
 					 array=["壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖", "拾", "悲", "神"])
 
 

@@ -45,6 +45,15 @@
     "description": "场景检测：组队"
   },  
   {
+    "itemName": "ai_assistant",
+    "imageName": "ai_assistant_87,17,128,41.png",
+    "roiFront": "87,17,128,41",
+    "roiBack": "87,17,128,41",
+    "method": "Template matching",
+    "threshold": 0.8,
+    "description": "场景检测：AI助手"
+  },
+  {
     "itemName": "orochi_fire",
     "imageName": "orochi_fire_1188_618_58_42.png",
     "roiFront": "1188,618,58,42",
