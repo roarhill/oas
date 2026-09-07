@@ -186,9 +186,9 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
                 continue
 
 
-        # 回 page_main 失败
-        # self.ui_current = page_ryou_toppa
-        # self.ui_goto(page_main)
+        # 回 page_main
+        self.ui_get_current_page()
+        self.ui_goto(page_main)
         if success:
             self.set_next_run(task='RyouToppa', finish=True, server=True, success=True)
         else:
@@ -322,6 +322,8 @@ class ScriptTask(GeneralBattle, GameUi, SwitchSoul, RyouToppaAssets):
                 click_failure_count += 1
                 continue
             if self.click(rcl, interval=5):
+                # https://github.com/runhey/OnmyojiAutoScript/issues/1748
+                time.sleep(random.uniform(0, 0.3))
                 click_failure_count += 1
                 continue
 

@@ -39,7 +39,12 @@ class LoginHandler(BaseTask, RestartAssets, GameUiAssets, GeneralBuffAssets):
                 self.device.get_orientation()
                 orientation_timer.reset()
 
-            self.screenshot()
+            self.device.screenshot()
+            # https://github.com/runhey/OnmyojiAutoScript/pull/1761
+            if not self.device.check_screen_size_sample():
+                continue
+            self._burst()
+
             # 取消继续战斗
             if self.appear_then_click(self.I_CANCEL_BATTLE, interval=0.8):
                 logger.info('Cancel continue battle')
@@ -135,7 +140,7 @@ class LoginHandler(BaseTask, RestartAssets, GameUiAssets, GeneralBuffAssets):
                 if self.appear_then_click(self.I_EARLY_SERVER_CANCEL):
                     logger.info('Cancel switch from early server to normal server')
                     continue
-            if self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3):
+            if self.ocr_appear_click(self.O_LOGIN_ENTER_GAME_ORIGIN, interval=3) or self.ocr_appear_click(self.O_LOGIN_ENTER_GAME, interval=3):
                 self.wait_until_appear(self.I_LOGIN_SPECIFIC_SERVE, True, wait_time=5)
                 continue
 
@@ -170,7 +175,11 @@ class LoginHandler(BaseTask, RestartAssets, GameUiAssets, GeneralBuffAssets):
         skip_default = False
         courtyard_affairs_done = False  # 庭院事务只执行一次
         while 1:
-            self.screenshot()
+            self.device.screenshot()
+            # https://github.com/runhey/OnmyojiAutoScript/pull/1761
+            if not self.device.check_screen_size_sample():
+                continue
+            self._burst()
 
             # 点击'获得奖励'
             if self.ui_reward_appear_click():

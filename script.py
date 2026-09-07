@@ -30,6 +30,7 @@ from module.config.utils import convert_to_underscore
 from module.config.config import Config
 from module.config.config_model import ConfigModel
 from module.config.instance_guard import InstanceGuard
+from module.config.anti_ban import AntiBanGuard
 from module.device.device import Device
 from module.device.env import IS_WINDOWS
 from module.base.utils import load_module
@@ -61,6 +62,7 @@ class Script:
         self.loop_thread: Thread = None
         # 跨进程排队管理器（仅在 queue_mode=True 时初始化）
         self.instance_guard: InstanceGuard = None
+        self.anti_ban_guard: AntiBanGuard = AntiBanGuard()
 
     @cached_property
     def config(self) -> "Config":
@@ -329,6 +331,9 @@ class Script:
             if self.state_queue:
                 self.state_queue.put({"schedule": self.config.get_schedule_data()})
             now = datetime.now()
+            antiban_wake = self.anti_ban_guard.wake_time(now, self.config.script.anti_ban)
+            if antiban_wake is not None:
+                task.next_run = max(task.next_run, antiban_wake)
             if not self._try_acquire_queue_token():
                 del_cached_property(self, "config")
                 continue
@@ -625,6 +630,7 @@ class Script:
         start_day = date.today()
         logger.info(f'Start scheduler loop: {self.config_name}')
         self.config.model.running_task = ''
+        self.anti_ban_guard.reset()
 
         # Update GUI 防呆, 读取设置并立刻显示后台模拟器到前台
         if not self.config.script.device.run_background_only and IS_WINDOWS:
@@ -680,10 +686,12 @@ class Script:
             self.device.click_record_clear()
             logger.hr(task, level=0)
             self.config.model.running_task = task
+            _task_start = datetime.now()
             success = self.run(inflection.camelize(task))
             self.config.model.running_task = ''
             logger.info(f'Scheduler: End task `{task}`')
             self.is_first_task = False
+            self.anti_ban_guard.record_active((datetime.now() - _task_start).total_seconds())
 
             # Check failures
             # failed = deep_get(self.failure_record, keys=task, default=0)
