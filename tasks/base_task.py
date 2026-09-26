@@ -283,7 +283,7 @@ class BaseTask(GlobalGameAssets, CostumeBase):
         return appear
 
     def wait_until_appear(self,
-                          target: RuleImage | RuleOcr,
+                          target: RuleImage | RuleGif | RuleOcr,
                           skip_first_screenshot=False,
                           wait_time: int = None) -> bool:
         """
@@ -305,13 +305,13 @@ class BaseTask(GlobalGameAssets, CostumeBase):
             if wait_timer and wait_timer.reached():
                 logger.warning(f"Wait until appear {target.name} timeout")
                 return False
-            if isinstance(target, RuleImage) and self.appear(target):
+            if isinstance(target, (RuleImage, RuleGif)) and self.appear(target):
                 return True
             if isinstance(target, RuleOcr) and self.ocr_appear(target):
                 return True
 
     def wait_until_appear_then_click(self,
-                                     target: RuleImage,
+                                     target: RuleImage | RuleGif,
                                      action: Union[RuleClick, RuleLongClick] = None,
                                      wait_time: int = None) -> bool:
         """
@@ -513,11 +513,12 @@ class BaseTask(GlobalGameAssets, CostumeBase):
             return True
         return False
 
-    def ocr_appear(self, target: RuleOcr, interval: float = None) -> bool:
+    def ocr_appear(self, target: RuleOcr, interval: float = None, exact: bool = False) -> bool:
         """
         ocr识别目标
         :param interval:
         :param target:
+        :param exact: 是否只匹配完整的单个 OCR 文本， 加上这个参数是为了 https://github.com/runhey/OnmyojiAutoScript/issues/1782
         :return: 如果target有keyword或者是keyword存在，返回是True，否则返回False
                  但是没有指定keyword，返回的是匹配到的值，具体取决于target的mode
         """
@@ -536,7 +537,7 @@ class BaseTask(GlobalGameAssets, CostumeBase):
             if not self.interval_timer[target.name].reached():
                 return None
 
-        result = target.ocr(self.device.image)
+        result = target.ocr(self.device.image, exact=exact)
         appear = False
 
         if not target.keyword or target.keyword == '':
@@ -562,16 +563,18 @@ class BaseTask(GlobalGameAssets, CostumeBase):
                          target: RuleOcr,
                          action: Union[RuleClick, RuleLongClick] = None,
                          interval: float = None,
-                         duration: float = None) -> bool:
+                         duration: float = None,
+                         exact: bool = False) -> bool:
         """
         ocr识别目标，如果目标存在，则触发动作
         :param target:
         :param action:
         :param interval:
         :param duration:
+        :param exact: 是否只匹配完整的单个 OCR 文本 ， 加上这个参数是为了 https://github.com/runhey/OnmyojiAutoScript/issues/1782
         :return:
         """
-        appear = self.ocr_appear(target, interval)
+        appear = self.ocr_appear(target, interval, exact=exact)
 
         if not appear:
             return False

@@ -19,8 +19,8 @@ from module.exception import TaskEnd
 from module.logger import logger
 
 from tasks.base_task import BaseTask
-from tasks.Component.GeneralBattle.battle_wait import battle_wait_strategy
-from tasks.Component.GeneralBattle.config_general_battle import GeneralBattleConfig
+from tasks.Component.GeneralBattle.battle_wait import battle_wait_strategy, battle_wait_options
+from tasks.Component.GeneralBattle.battle import Battle
 from tasks.ActivityShikigami.assets import ActivityShikigamiAssets
 from tasks.ActivityShikigami.config import SwitchSoulConfig, GeneralBattleConfig, ActivityShikigami
 from tasks.Component.BaseActivity.base_activity import BaseActivity
@@ -137,13 +137,13 @@ class StateMachine(BaseTask):
         if self.run_idx >= len(self.conf.general_climb.run_sequence_v):
             logger.info('All climbing activities have been completed')
             return False
-        # 切换爬塔类型了, 恢复所有状态
-        self.current_count = 0
+        # 切换爬塔类型, count_map 按类型独立统计无需重置；但战斗框架状态需要清掉上一类型的残留
+        self.battle_state_reset()
         logger.hr(f'Climb switch to {self.climb_type}', 2)
         return True
 
 
-class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikigamiAssets):
+class ScriptTask(StateMachine, GameUi, Battle, BaseActivity, SwitchSoul, ActivityShikigamiAssets):
     """
     更新前请先看 ./README.md
     """
@@ -211,7 +211,7 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
             if self.start_battle():
                 continue
 
-        self.ui_click(self.I_UI_BACK_YELLOW, stop=self.I_TO_BATTLE_MAIN, interval=1)
+        self.ui_click(self.I_UI_BACK_YELLOW, stop=self.I_TO_BATTLE_MAIN, interval=4.5)
 
     def _run_ap(self):
         """
@@ -244,7 +244,7 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
             if self.start_battle():
                 continue
 
-        self.ui_click(self.I_UI_BACK_YELLOW, stop=self.I_TO_BATTLE_MAIN, interval=1)
+        self.ui_click(self.I_UI_BACK_YELLOW, stop=self.I_TO_BATTLE_MAIN, interval=4.5)
 
     def _run_boss(self):
         """
@@ -269,7 +269,7 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
             if self.start_battle():
                 continue
 
-        self.ui_click(self.I_UI_BACK_YELLOW, stop=self.I_TO_BATTLE_BOSS, interval=1)
+        self.ui_click(self.I_UI_BACK_YELLOW, stop=self.I_TO_BATTLE_BOSS, interval=4.5)
 
     def _run_ap100(self):
         """
@@ -295,54 +295,21 @@ class ScriptTask(StateMachine, GameUi, BaseActivity, SwitchSoul, ActivityShikiga
                 logger.info(f'Try click fire, remain times[{max_times - click_times}]')
                 continue
         # 运行战斗
-        self.run_general_battle(config=self.get_general_battle_conf())
+        strategies, options = self.loadout_from_config(self.get_general_battle_conf())
+        strategies['success'] = 'activity'
+        self.loadout_show((strategies, options))
+        self.state_show()
+        with battle_wait_strategy(**strategies), battle_wait_options(**options):
+            win = self.battle_wait()
+        # 对齐历史语义: 战斗成功结束后记为一次
+        if win:
+            self.count_map[self.climb_type] += 1
+            logger.info(f'Count {self.climb_type}: {self.count_map[self.climb_type]}')
+        return win
 
-    # def battle_wait(self, random_click_swipt_enable: bool) -> bool:
-    #     # 通用战斗结束判断
-    #     self.device.stuck_record_add("BATTLE_STATUS_S")
-    #     self.device.click_record_clear()
-    #     logger.info(f"Start {self.climb_type} battle process")
-    #     self.count_map[self.climb_type] = self.current_count
-    #     for btn in (self.C_RANDOM_LEFT, self.C_RANDOM_RIGHT, self.C_RANDOM_TOP, self.C_RANDOM_BOTTOM):
-    #         btn.name = "BATTLE_RANDOM"
-    #     ok_cnt, max_retry = 0, 8
-    #     while 1:
-    #         sleep(random.uniform(0.5, 1.5))
-    #         self.screenshot()
-    #         # 达到最大重试次数则直接交给上层处理
-    #         if ok_cnt > max_retry:
-    #             break
-    #         # 识别到挑战说明已经退出战斗
-    #         if ok_cnt > 0 and self.ocr_appear(self.O_FIRE):
-    #             return True
-    #         # 战斗失败
-    #         if self.appear(self.I_FALSE):
-    #             logger.warning("Battle failed")
-    #             self.ui_click_until_smt_disappear(self.random_reward_click(click_now=False), self.I_FALSE, interval=1.5)
-    #             return False
-    #         # 战斗成功
-    #         if self.appear_then_click(self.I_WIN, interval=2):
-    #             continue
-    #         #  出现 “魂” 和 紫蛇皮
-    #         if self.appear(self.I_REWARD) or self.appear(self.I_REWARD_PURPLE_SNAKE_SKIN) or \
-    #                 self.appear(self.I_REWARD_GOLD) or self.appear(self.I_REWARD_GOLD_SNAKE_SKIN):
-    #             self.random_reward_click(exclude_click=[self.C_RANDOM_TOP, self.C_RANDOM_LEFT])
-    #             ok_cnt += 1
-    #             continue
-    #         # 已经不在战斗中了, 且奖励也识别过了, 则随机点击
-    #         if ok_cnt > 3 and not self.is_in_battle(False):
-    #             self.random_reward_click(exclude_click=[self.C_RANDOM_TOP, self.C_RANDOM_LEFT])
-    #             self.device.stuck_record_clear()
-    #             ok_cnt += 1
-    #             continue
-    #         # 战斗中随机滑动
-    #         if ok_cnt == 0 and random_click_swipt_enable:
-    #             self.random_click_swipt()
-    #     return True
-
-    @battle_wait_strategy('reserve_default', 'idle_default', failure='default', success='soul')
-    def battle_wait(self, *args, **kwargs):
-        return self.battle_wait_with_strategy(*args, **kwargs)
+    # @battle_wait_strategy(success='activity')
+    # def battle_wait(self, *args, **kwargs):
+    #     return self.battle_wait_with_strategy(*args, **kwargs)
 
     def switch_soul(self, enter_button: RuleImage, cur_img: RuleImage):
         conf = self.conf.switch_soul_config
