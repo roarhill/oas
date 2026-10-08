@@ -511,8 +511,8 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
             if self.appear(self.I_RYOU_DOKAN_DOKAN_QUIT):
                 self.click(self.I_RYOU_DOKAN_DOKAN_QUIT, interval=3)
                 continue
-            if self.appear(self.I_BACK_BL):
-                self.click(self.I_BACK_BL, interval=3)
+            if self.appear(self.I_UI_BACK_BLUE):
+                self.click(self.I_UI_BACK_BLUE, interval=3)
                 continue
             if self.appear(self.I_BACK_Y):
                 self.click(self.I_BACK_Y, interval=3)
@@ -533,8 +533,7 @@ class ScriptTask(ExtendGreenMark, GameUi, SwitchSoul, DokanSceneDetector):
                 self.ui_click_until_disappear(self.I_RYOU_DOKAN, interval=1)
                 continue
             if not in_dokan:
-                self.ui_get_current_page()
-                self.ui_goto(page_guild)
+                self.goto_page(page_guild)
                 continue
         self.device.screenshot_interval_set()
         return True

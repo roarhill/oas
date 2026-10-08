@@ -76,8 +76,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
         :return:
         """
         logger.hr('Touch fish start')
-        self.ui_get_current_page()
-        self.ui_goto(page_guild)
+        self.goto_page(page_guild)
         # 防止入口被折叠
         while 1:
             # 等个折叠窗口展开动画
@@ -88,11 +87,14 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
             if self.appear(self.I_WT_FOLD_WINDOW):
                 break
         # 保存次数，后续做了也会邮件返还福运御守
-        self.ui_goto(page_touch_fish)
+        self.goto_page(page_touch_fish)
         self.screenshot()
         if self.appear(self.I_WT_SAVE_ALL):
-            _, cu_tickts, _ = self.O_WT_LUCKY_TICKETS.ocr(self.device.image)
+            cu_tickts, _, _ = self.O_WT_LUCKY_TICKETS.ocr(self.device.image)
+            logger.info(f"当前的福运御守数量：{cu_tickts}")
             cost_tickts = self.O_WT_SAVE_COST.ocr(self.device.image)
+            logger.info(f"全部存储需要花费的福运御守数量：{cost_tickts}")
+            not_save_flag = True
             get_timer = Timer(7)
             get_timer.start()
             while 1:
@@ -105,9 +107,9 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
                     continue
                 if self.appear_then_click(self.I_WT_HAPPY_GET):
                     continue
-                if cu_tickts >= cost_tickts:
+                if cu_tickts >= cost_tickts and not_save_flag:
                     self.appear_then_click(self.I_WT_SAVE_ALL)
-                    cu_tickts = 0
+                    not_save_flag = False
                     continue
                 if self.appear_then_click(self.I_WT_TF_CONFIRM):
                     continue
@@ -116,14 +118,14 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
                 ):
                     logger.info('Touch fish save success')
                     break
-                if cu_tickts < cost_tickts:
+                if cu_tickts < cost_tickts and not_save_flag:
                     logger.warning('Touch fish tickts not enough, exit!')
                     break
                 if get_timer.reached():
                     logger.warning('Touch fish timeout, exit!')
                     break
         logger.hr('Touch fish finished')
-        self.ui_goto(page_main)
+        self.goto_page(page_main)
 
     def _share_collect(self):
         """
@@ -131,8 +133,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
         :return:
         """
         logger.hr('Share collect')
-        self.ui_get_current_page()
-        self.ui_goto(page_collection)
+        self.goto_page(page_collection)
         # 一路进去
         while 1:
             self.screenshot()
@@ -198,8 +199,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
             logger.info('Back to boss')
 
         logger.hr('Share area boss')
-        self.ui_get_current_page()
-        self.ui_goto(page_area_boss)
+        self.goto_page(page_area_boss)
 
         # 一路进去
         obtained = False
@@ -235,8 +235,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
         :return:
         """
         logger.hr('Share secret')
-        self.ui_get_current_page()
-        self.ui_goto(page_secret_zones)
+        self.goto_page(page_secret_zones)
         # 一路进去
         valid = False
         while 1:
@@ -290,8 +289,7 @@ class ScriptTask(GameUi, WeeklyTriflesAssets):
             logger.info('Exit broken amulet')
 
         logger.hr('Broken amulet')
-        self.ui_get_current_page()
-        self.ui_goto(page_summon)
+        self.goto_page(page_summon)
         self.screenshot()
         real_num = self.O_BA_AMOUNT_1.ocr(self.device.image)
         if real_num <= 0:
@@ -370,6 +368,7 @@ if __name__ == '__main__':
     t = ScriptTask(c, d)
     t.screenshot()
 
+    t.run()
     # t._share_collect()
     t._share_area_boss()
     # t.click_share(t.I_WT_SE_WECHAT)
