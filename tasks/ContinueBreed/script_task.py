@@ -41,6 +41,9 @@ class ScriptTask(GameUi, BreedSceneDetector):
             ramdom_time = random.randint(1, 3)
             sleep(ramdom_time/5)
 
+            self.device.stuck_record_add('BATTLE_STATUS_S')
+            self.device.click_record_clear()
+
             # 获取当前场景
             current_scene = self.get_current_scene(reuse_screenshot=False)
             match current_scene:
