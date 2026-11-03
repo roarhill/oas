@@ -10,15 +10,20 @@ from datetime import time, datetime, timedelta
 from enum import Enum
 import numpy as np
 
-from tasks.Component.GeneralBattle.general_battle import GeneralBattle
+from tasks.Component.GeneralBattle.general_battle import GeneralBattle, GeneralBattleConfig
+from tasks.Component.GeneralInvite.general_invite import GeneralInvite
 from tasks.Component.GeneralInvite.config_invite import FindMode, InviteConfig, InviteNumber
 # from tasks.Component.GeneralInvite.general_invite import GeneralInvite, RoomType
 from tasks.OrochiNew.orochi_invite import OrochiInvite, OrochiRoomType
+
+from tasks.Component.GeneralBuff.config_buff import BuffClass
 from tasks.Component.GeneralBuff.general_buff import GeneralBuff
+
 from tasks.Component.GeneralRoom.general_room import GeneralRoom
 from tasks.Component.SwitchSoul.switch_soul import SwitchSoul
 from tasks.GameUi.game_ui import GameUi
 from tasks.GameUi.page import page_main, page_soul_zones, page_shikigami_records
+from tasks.Orochi.page import page_orochi
 
 from module.logger import logger
 from module.exception import TaskEnd
@@ -43,7 +48,7 @@ class OrochiNewScene(Enum):
     # 场景检测：御魂战斗进行中
     OROCHI_SCENE_FIGHTING = 3
 
-class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, SwitchSoul, OrochiNewAssets, OrochiAssets):
+class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi, SwitchSoul, OrochiInvite, OrochiNewAssets, OrochiAssets):
     in_orochi: bool = False
     current_scene: OrochiNewScene = OrochiNewScene.OROCHI_SCENE_UNKNOWN
     anti_detect_click_fixed_random_area: bool = True
@@ -98,48 +103,31 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
             
             # 只有队长模式才需要创建房间和拉队伍
             if self.my_config.orochi_new_config.user_status == UserStatus.LEADER:
-                self.ui_get_current_page()
-                self.ui_goto(page_soul_zones)
-                self.orochi_enter()
-                
-                layer = self.my_config.orochi_new_config.layer
-                logger.info(f"finding Orochi layer: {layer}")
-                if not self.orochi_check_layer(layer):
-                    logger.error(f"Failed to find and select layer: {layer}")
-                    return False
-                
+ 
+                self.goto_page(page_orochi)
+                layer = self.config.orochi.orochi_config.layer
+                self.orochi_check_layer(layer)
+                # https://github.com/runhey/OnmyojiAutoScript/issues/592
+                # self.config.orochi.general_battle_config.lock_team_enable = True
+                # self.check_lock(self.config.orochi.general_battle_config.lock_team_enable)
+                # 创建队伍
                 logger.info('Create team')
                 while 1:
                     self.screenshot()
-                    if self.appear_then_click(OrochiAssets.I_FORM_TEAM, interval=1):
+                    if self.appear(self.I_CHECK_TEAM):
                         break
+                    if self.appear_then_click(self.I_FORM_TEAM, interval=1):
+                        continue
+                # 创建房间
+                self.create_room()
+                self.ensure_private()
+                self.create_ensure()
 
-                max_retry_create_room = 3
-                is_room_created = False
-                logger.info(f'{self.I_CREATE_ROOM}, max retry create room={max_retry_create_room}')
-                while 1:
-                    self.screenshot()
-                    if not self.create_room():
-                        max_retry_create_room = max_retry_create_room - 1
-                        if max_retry_create_room <= 0:
-                            logger.error("create room failed")
-                            break
-                    else:
-                        logger.info("create room successfully")
-                        is_room_created = True
-                
-                if is_room_created:
-                    self.ensure_private()
-                    self.create_ensure()
-                    
-                    self.current_scene = OrochiNewScene.OROCHI_SCENE_TEAM
-                else:
-                    return False
 
         # 开始战斗
         success = True
         match self.my_config.orochi_new_config.user_status:
-            case UserStatus.LEADER: success = self.orochi_run_leader(self.current_scene)
+            case UserStatus.LEADER: success = self.orochi_run_leader()
             case UserStatus.MEMBER: success = self.orochi_run_member(self.current_scene)
             case _: logger.error('current version supports only running leader mode!')
 
@@ -160,8 +148,8 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
         '''
         在庭院界面打开御魂加成（考虑放到组队成功、点击挑战前）
         '''
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        # self.ui_get_current_page()
+        self.goto_page(page_main)
         if config.orochi_new_config.soul_buff_enable:
             self.open_buff()
             self.soul(is_open=True)
@@ -173,14 +161,14 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
         '''
         # 御魂切换方式一
         if config.switch_soul.enable:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            # self.ui_get_current_page()
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul(config.switch_soul.switch_group_team)
 
         # 御魂切换方式二
         if config.switch_soul.enable_switch_by_name:
-            self.ui_get_current_page()
-            self.ui_goto(page_shikigami_records)
+            # self.ui_get_current_page()
+            self.goto_page(page_shikigami_records)
             self.run_switch_soul_by_name(config.switch_soul.group_name,
                                          config.switch_soul.team_name)
 
@@ -201,6 +189,7 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
         """
         pos = self.list_find(self.L_LAYER_LIST_NEW, layer)
         if pos:
+            logger.info('OrochiNew orochi_check_layer:    Find layer %s, pos %s', layer, pos)
             self.device.click(x=pos[0], y=pos[1])
             return True
 
@@ -223,6 +212,30 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
             return True
         else:
             return False
+
+
+
+    def check_lock(self, lock: bool = True) -> bool:
+        """
+        检查是否锁定阵容, 要求在八岐大蛇界面
+        :param lock:
+        :return:
+        """
+        logger.info('Check lock: %s', lock)
+        if lock:
+            while 1:
+                self.screenshot()
+                if self.appear(self.I_OROCHI_LOCK):
+                    return True
+                if self.appear_then_click(self.I_OROCHI_UNLOCK, interval=1):
+                    continue
+        else:
+            while 1:
+                self.screenshot()
+                if self.appear(self.I_OROCHI_UNLOCK):
+                    return True
+                if self.appear_then_click(self.I_OROCHI_LOCK, interval=1):
+                    continue
 
     def orochi_get_scene(self, reuse_screenshot: bool = True):
         '''
@@ -258,6 +271,123 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
         
         return False, OrochiNewScene.OROCHI_SCENE_UNKNOWN
 
+
+
+    def orochi_run_leader_new(self, scene = None):
+        logger.info('Start run leader')
+        self.goto_page(page_orochi)
+        layer = self.config.orochi.orochi_config.layer
+        self.orochi_check_layer(layer)
+        # https://github.com/runhey/OnmyojiAutoScript/issues/592
+        # self.config.orochi.general_battle_config.lock_team_enable = True
+        # self.check_lock(self.config.orochi.general_battle_config.lock_team_enable)
+        # 创建队伍
+        logger.info('Create team')
+        while 1:
+            self.screenshot()
+            if self.appear(self.I_CHECK_TEAM):
+                break
+            if self.appear_then_click(self.I_FORM_TEAM, interval=1):
+                continue
+        # 创建房间
+        self.create_room()
+        self.ensure_private()
+        self.create_ensure()
+
+        # 邀请队友
+        success = True
+        is_first = True
+        # 这个时候我已经进入房间了哦
+        while 1:
+            self.screenshot()
+            # 无论胜利与否, 都会出现是否邀请一次队友
+            # 区别在于，失败的话不会出现那个勾选默认邀请的框
+            if self.check_and_invite(self.config.orochi.invite_config.default_invite):
+                continue
+
+            # 检查猫咪奖励
+            if self.appear_then_click(self.I_PET_PRESENT, action=self.C_WIN_3, interval=1):
+                continue
+
+            if self.current_count >= self.limit_count:
+                if self.is_in_room():
+                    logger.info('Orochi count limit out')
+                    break
+
+            if datetime.now() - self.start_time >= self.limit_time:
+                if self.is_in_room():
+                    logger.info('Orochi time limit out')
+                    break
+
+
+
+            # 如果没有进入房间那就不需要后面的邀请
+            if not self.is_in_room():
+                if self.orochi_is_room_dead():
+                    logger.warning('Orochi task failed')
+                    success = False
+                    break
+                continue
+
+            # 点击挑战
+            if not is_first:
+                if self.run_invite(config=self.config.orochi.invite_config):
+                    self.orochi_run_general_battle(config=self.config.orochi.general_battle_config)
+                else:
+                    # 邀请失败，退出任务
+                    logger.warning('Invite failed and exit this orochi task')
+                    success = False
+                    break
+
+            # 第一次会邀请队友
+            if is_first:
+                if not self.run_invite(config=self.config.orochi.invite_config, is_first=True):
+                    logger.warning('Invite failed and exit this orochi task')
+                    success = False
+                    break
+                else:
+                    is_first = False
+                    self.orochi_run_general_battle(config=self.config.orochi.general_battle_config)
+
+        # 当结束或者是失败退出循环的时候只有两个UI的可能，在房间或者是在组队界面
+        # 如果在房间就退出
+        if self.exit_room():
+            pass
+        # 如果在组队界面就退出
+        if self.exit_team():
+            pass
+
+        self.goto_page(page_main)
+
+        if not success:
+            return False
+        return True
+
+
+    def orochi_run_general_battle(self, config: GeneralBattleConfig = None, buff: BuffClass or list[BuffClass] = None) -> bool:
+        """
+        运行脚本
+        :return:
+        """
+        logger.hr("General battle start", 2)
+        if config is None:
+            config = GeneralBattleConfig()
+        # 本人选择的策略是只要进来了就算一次，不管是不是打完了
+        # 战斗统计
+        self.current_count += 1
+        logger.info(f"Current count: {self.current_count}")
+        # 战前设置
+        self.battle_before(buff, config)
+        # 绿标
+        if self.is_in_battle(False):
+            self.green_mark(config.green_enable, config.green_mark)
+        # 战中设置
+        win = self.orochi_battle_wait(random_click_swipt_enable=config.random_click_swipt_enable)
+        if win:
+            return True
+        else:
+            return False
+        
     def orochi_run_leader(self, scene: OrochiNewScene = OrochiNewScene.OROCHI_SCENE_UNKNOWN):
         '''
         御魂司机流程（原run_leader函数存在问题，又不想改原函数，怕影响现有的其他功能，因此独立出来实现）
@@ -269,14 +399,17 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
 
         match scene:
             case OrochiNewScene.OROCHI_SCENE_TEAM:
-                is_first = True
                 manual_start = False
+                is_first = True
             case OrochiNewScene.OROCHI_SCENE_IN_FIELD | OrochiNewScene.OROCHI_SCENE_FIGHTING:
-                is_first = False
                 manual_start = True
+                is_first = False
+            case OrochiNewScene.OROCHI_SCENE_UNKNOWN:
+                manual_start = False
+                is_first = True
             case _:
-                is_first = False
                 manual_start = True
+                is_first = False
 
         success = True
 
@@ -289,14 +422,17 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
             if self.appear_then_click(OrochiAssets.I_PET_PRESENT, action=self.C_WIN_3, interval=1):
                 continue
 
-            if manual_start and not is_first:
-                if self.orochi_check_and_skip_battle_result() == True:
-                    self.check_and_invite(self.my_config.invite_config.default_invite)
-                    continue
+            if self.orochi_check_and_skip_battle_result() == True:
+                self.orochi_check_and_invite(self.my_config.invite_config.default_invite)
+                continue
+            # if manual_start and not is_first:
+            #     if self.orochi_check_and_skip_battle_result() == True:
+            #         self.orochi_check_and_invite(self.my_config.invite_config.default_invite)
+            #         continue
 
             # 无论胜利与否, 都会出现是否邀请一次队友
             # 区别在于，失败的话不会出现那个勾选默认邀请的框
-            if self.check_and_invite(self.my_config.invite_config.default_invite):
+            if self.orochi_check_and_invite(self.my_config.invite_config.default_invite):
                 continue
 
             # 次数达到上限
@@ -326,7 +462,7 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
             # 点击挑战
             if not is_first:
                 if self.orochi_run_invite(config=self.my_config.invite_config, is_first=False):
-                    self.run_general_battle(config=self.my_config.general_battle_config)
+                    self.orochi_run_general_battle(config=self.my_config.general_battle_config)
                 else:
                     # 邀请失败，退出任务
                     logger.warning('Invite failed and exit this orochi task')
@@ -335,7 +471,7 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
             else:
                 if manual_start:
                     is_first = False
-                    self.run_general_battle(config=self.my_config.general_battle_config)
+                    self.orochi_run_general_battle(config=self.my_config.general_battle_config)
                 else:
                     if not self.orochi_run_invite(config=self.my_config.invite_config, is_first=True):
                         logger.warning('Invite failed and exit this orochi task')
@@ -343,7 +479,7 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
                         break
                     else:
                         is_first = False
-                        self.run_general_battle(config=self.my_config.general_battle_config)
+                        self.orochi_run_general_battle(config=self.my_config.general_battle_config)
 
         # 当结束或者是失败退出循环的时候只有两个UI的可能，在房间或者是在组队界面
         # 如果在房间就退出
@@ -353,8 +489,8 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
         if self.exit_team():
             pass
 
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        # self.ui_get_current_page()
+        self.goto_page(page_main)
 
         return success
 
@@ -363,7 +499,7 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
         御魂队员流程（原run_member函数存在问题，又不想改原函数，怕影响现有的其他功能，因此独立出来实现）
         '''
         logger.info('Start run member')
-        self.ui_get_current_page()
+        # self.ui_get_current_page()
 
         # 进入战斗流程
         self.device.stuck_record_add('BATTLE_STATUS_S')
@@ -392,7 +528,7 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
             if self.is_in_room():
                 self.device.stuck_record_clear()
                 if self.wait_battle(wait_time=self.my_config.invite_config.wait_time):
-                    self.run_general_battle(config=self.my_config.general_battle_config)
+                    self.orochi_run_general_battle(config=self.my_config.general_battle_config)
                 else:
                     break
             # 队长秒开的时候，检测是否进入到战斗中
@@ -410,8 +546,8 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
             if self.exit_battle():
                 pass
 
-        self.ui_get_current_page()
-        self.ui_goto(page_main)
+        # self.ui_get_current_page()
+        self.goto_page(page_main)
 
         return True
 
@@ -438,7 +574,7 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
         if self.appear(self.I_STATISTICS, threshold=0.8):
             logger.info("OrochiNew was started at {self.I_STATISTICS.name}")
             # self.ui_click_until_disappear(self.I_STATISTICS, interval=0.5)
-            self.click(click=DokanAssets.C_DOKAN_RANDOM_CLICK_AREA2, interval=0.5)
+            self.click(click=DokanAssets.C_DOKAN_RANDOM_CLICK_AREA2, interval=1.5)
             return True
 
         # 打完后，第二个界面，左下角有一个统计
@@ -468,7 +604,8 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
             return True
 
         # 领奖励出现金币
-        if self.appear_then_click(self.I_REWARD_GOLD, threshold=0.8):
+        if self.appear(self.I_REWARD_GOLD, threshold=0.8):
+            self.click(click=DokanAssets.C_DOKAN_RANDOM_CLICK_AREA2, interval=0.5)
             logger.info("OrochiNew was started at {self.I_REWARD_GOLD.name}")
             return True
 
@@ -477,7 +614,7 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
             logger.info("OrochiNew was started at {self.I_PET_PRESENT.name}")
             # action_click = random.choice([self.C_WIN_1, self.C_WIN_2, self.C_WIN_3])
             # self.click(click=action_click, interval=0.6)
-            self.click(click=DokanAssets.C_DOKAN_RANDOM_CLICK_AREA2, interval=0.5)
+            self.click(click=DokanAssets.C_DOKAN_RANDOM_CLICK_AREA2, interval=1.5)
             return True
 
         return False
@@ -506,7 +643,7 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
 
         return False
 
-    def battle_wait(self, random_click_swipt_enable: bool) -> bool:
+    def orochi_battle_wait(self, random_click_swipt_enable: bool) -> bool:
         """
         战斗等待，加入突破券统计
         :param random_click_swipt_enable: 
@@ -524,10 +661,22 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
 
         while 1:
             self.screenshot()
-            action_click = random.choice([self.C_WIN_1, self.C_WIN_2, self.C_WIN_3])
-            if self.appear_then_click(self.I_WIN, action=action_click ,interval=0.8):
-                # 赢的那个鼓
-                continue
+
+            # action_click = random.choice([self.C_WIN_1, self.C_WIN_2, self.C_WIN_3])
+            # if self.appear_then_click(self.I_WIN, action=action_click ,interval=0.8):
+            #     logger.info('OrochiNew orochi_battle_wait:    Win battle')
+            #     # 赢的那个鼓
+            #     continue
+            # 如果出现赢 就点击, 第二个是针对封魔的图片
+            if self.appear(self.I_WIN, threshold=0.8) or self.appear(self.I_DE_WIN):
+                logger.info("Battle result is win")
+                if self.appear(self.I_DE_WIN):
+                    # self.ui_click_until_disappear(self.I_DE_WIN)
+                    self.click(click=DokanAssets.C_DOKAN_RANDOM_CLICK_AREA2, interval=1.5)
+                win = True
+                break
+
+
             if self.appear(self.I_GREED_GHOST):
                 # 检查突破券
                 self.orochi_check_toppa_scroll()
@@ -578,7 +727,7 @@ class ScriptTask(GeneralBattle, OrochiInvite, GeneralBuff, GeneralRoom, GameUi, 
         :param is_first: 如果是第一次开房间的那就要邀请队员，其他情况等待队员进入
         :return:
         """
-        logger.hr('[] Orochi invite friend', 2)
+        logger.hr(f'[] Orochi invite friend, is_first={is_first}', 2)
         if not self.ensure_enter():
             logger.warning('[] Not enter invite page')
             return False
