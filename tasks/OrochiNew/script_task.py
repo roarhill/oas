@@ -415,15 +415,17 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
 
         # 这个时候我已经进入房间了哦
         while 1:
-            logger.warning(f"manual_start={manual_start}, first={is_first}, {self.current_count}/{self.limit_count}")
+            # logger.warning(f"manual_start={manual_start}, first={is_first}, {self.current_count}/{self.limit_count}")
             self.screenshot()
 
             # 检查猫咪奖励
             if self.appear_then_click(OrochiAssets.I_PET_PRESENT, action=self.C_WIN_3, interval=1):
+                is_first = False
                 continue
 
             if self.orochi_check_and_skip_battle_result() == True:
                 self.orochi_check_and_invite(self.my_config.invite_config.default_invite)
+                is_first = False
                 continue
             # if manual_start and not is_first:
             #     if self.orochi_check_and_skip_battle_result() == True:
@@ -572,7 +574,7 @@ class ScriptTask(GeneralBattle, GeneralInvite, GeneralBuff, GeneralRoom, GameUi,
 
         # 打完后，第一个界面，左上角有一个统计，但是这个图不对，先跳过（跳过的结果是：会等界面超时自动跳转到：第二个界面，左下角有一个统计）
         if self.appear(self.I_STATISTICS, threshold=0.8):
-            logger.info("OrochiNew was started at {self.I_STATISTICS.name}")
+            # logger.info("OrochiNew was started at {self.I_STATISTICS.name}")
             # self.ui_click_until_disappear(self.I_STATISTICS, interval=0.5)
             self.click(click=DokanAssets.C_DOKAN_RANDOM_CLICK_AREA2, interval=1.5)
             return True
