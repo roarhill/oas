@@ -80,6 +80,7 @@ class MetaDemonConfig(ConfigBase):
     # extreme_notify: bool = Field(default=False, description='extreme_notify_help')
     md_strategy_count: int = Field(default=0, ge=0, description='md_strategy_count_help')
     md_use_strategy: bool = Field(default=False, description='md_use_strategy_help')
+    max_battle_limits: int = Field(default=30, ge=0, description='max_battle_limits_help')
 
     @field_validator('auto_tea', mode='after')
     @classmethod

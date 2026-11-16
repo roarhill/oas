@@ -86,6 +86,9 @@ class ScriptTask(RightActivity, Battle, GeneralBattle, SwitchSoul, Star56):
             self.run_switch_soul_by_name(self.config.meta_demon.switch_soul.group_name,
                                          self.config.meta_demon.switch_soul.team_name)
 
+        self.max_battle_limits = self.config.meta_demon.meta_demon_config.max_battle_limits
+        logger.info(f'max_battle_limits: {self.max_battle_limits}')
+
         self.enter(self.I_RIGHT_ENTER)
         while 1:
             self.screenshot()
@@ -145,6 +148,13 @@ class ScriptTask(RightActivity, Battle, GeneralBattle, SwitchSoul, Star56):
                 else:
                     logger.info('Exhaustion is full, exit')
                     break
+            # 超过次数结束
+            # 任务级战斗计数：本场是第几场（和旧日志 Current count 对齐）
+            count = runtime.pub_ctx.per_task.count if runtime.pub_ctx else 0
+            logger.info(f'Current count: {count + 1}, max_battle_limits: {self.max_battle_limits}')
+            if self.max_battle_limits <= count:
+                logger.info(f'max battle limit reached, exit. max_battle_limits={self.max_battle_limits}, count={count}')
+                break
             # 超时结束
             if boss_timer.reached():
                 logger.info('Time out, exit')
@@ -264,7 +274,7 @@ class ScriptTask(RightActivity, Battle, GeneralBattle, SwitchSoul, Star56):
         @return: True 战斗胜利，False 战斗失败
         """
         logger.info('Battle boss')
-        self.ui_click(self.I_TEAM_LOCK, self.I_TEAM_UNLOCK, interval=1.5, timeout=5)
+        # self.ui_click(self.I_TEAM_LOCK, self.I_TEAM_UNLOCK, interval=1.5, timeout=5)
         self.ui_click_until_disappear(self.I_BATTLE_DEMON, interval=1.8)
         # 任务级战斗计数：本场是第几场（和旧日志 Current count 对齐）
         count = runtime.pub_ctx.per_task.count if runtime.pub_ctx else 0
